@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IELTS Writing Simulator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e9ecef;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      margin: 20px 20px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .left-panel,
+    .right-panel {
+      padding: 20px;
+    }
+
+    .left-panel {
+      width: 50%;
+      border-right: 1px solid #dee2e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: #f8f9fa;
+    }
+
+    .right-panel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task-type {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #343a40;
+    }
+
+    .timer {
+      font-size: 1.2em;
+      color: #495057;
+      margin-bottom: 20px;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      max-height: 600px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    textarea {
+      height: 400px;
+      padding: 15px;
+      font-size: 1em;
+      line-height: 1.6;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      resize: vertical;
+      margin-top: 10px;
+      background-color: #fefefe;
+    }
+
+    .word-count {
+      text-align: right;
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #495057;
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    input[type="file"],
+    select {
+      margin: 10px 0;
+      padding: 10px;
+      width: 95%;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      font-size: 1em;
+      background-color: #fff;
+    }
+
+    label {
+      font-weight: bold;
+      width: 100%;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        display: block;
+      }
+
+      .left-panel {
+        width: auto;
+        /* min-height: 30vh; */
+      }
+
+      .right-panel {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <div class="input-row">
+        <div class="input-group">
+          <label for="taskSelect">Select Task</label>
+          <select id="taskSelect" onchange="setTaskType()">
+            <option value="2">Task 2</option>
+            <option value="1">Task 1</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="taskImage">Upload Task Image</label>
+          <input type="file" id="taskImage" accept="image/*" onchange="previewImage(event)" />
+        </div>
+      </div>
+
+      <img id="taskPreview" class="image-preview" src="" alt="Task Preview" style="display: none;" />
+    </div>
+
+    <div class="right-panel">
+      <div class="task-type" id="taskTypeLabel">IELTS Writing Task 2</div>
+      <div class="timer" id="timer">40:00</div>
+
+      <textarea id="response" placeholder="Type your response here..." oninput="updateWordCount()"></textarea>
+      <div class="word-count" id="wordCount">Word count: 0</div>
+
+      <div class="footer">
+        <button onclick="submitResponse()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let totalTime = 40 * 60;
+    let timerRunning = false;
+
+    function startTimer(duration) {
+      totalTime = duration;
+      const timerElement = document.getElementById("timer");
+      if (timerRunning) return;
+      timerRunning = true;
+
+      const interval = setInterval(() => {
+        if (totalTime <= 0) {
+          clearInterval(interval);
+          timerElement.textContent = "00:00";
+          return;
+        }
+        totalTime--;
+        const minutes = Math.floor(totalTime / 60);
+        const seconds = totalTime % 60;
+        timerElement.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }, 1000);
+    }
+
+    function submitResponse() {
+      const response = document.getElementById("response").value;
+      const wordCount = response.trim().split(/\s+/).filter(Boolean).length;
+      alert("Your response has been submitted!\n\nWord count: " + wordCount);
+    }
+
+    function updateWordCount() {
+      const response = document.getElementById("response").value;
+      const wordCount = response.trim().split(/\s+/).filter(Boolean).length;
+      document.getElementById("wordCount").textContent = `Word count: ${wordCount}`;
+    }
+
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const output = document.getElementById("taskPreview");
+        output.src = reader.result;
+        output.style.display = "block";
+
+        const task = document.getElementById("taskSelect").value;
+        if (task === "1") {
+          document.getElementById("taskTypeLabel").textContent = "IELTS Writing Task 1";
+          startTimer(20 * 60);
+        } else {
+          document.getElementById("taskTypeLabel").textContent = "IELTS Writing Task 2";
+          startTimer(40 * 60);
+        }
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function setTaskType() {
+      const task = document.getElementById("taskSelect").value;
+      document.getElementById("taskTypeLabel").textContent =
+        task === "1" ? "IELTS Writing Task 1" : "IELTS Writing Task 2";
+      document.getElementById("timer").textContent = task === "1" ? "20:00" : "40:00";
+      timerRunning = false;
+    }
+
+    window.onload = () => {
+      setTaskType();
+    }
+  </script>
+</body>
+
+</html>
